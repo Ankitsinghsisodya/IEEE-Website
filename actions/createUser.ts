@@ -28,6 +28,7 @@ export const createUser = async (formdata: FormData) => {
       codeforcesHandle,
       codechefHandle,
     };
+    
     console.log(user);
     const parsedUser = userSchema.safeParse(user);
     if (!parsedUser.success) {

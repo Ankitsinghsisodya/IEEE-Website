@@ -1,6 +1,7 @@
 "use server";
 import { prisma } from "@/lib";
 import axios from "axios";
+import { stat } from "fs";
 import { revalidatePath } from "next/cache";
 
 export const updateAllUsersRating = async () => {
@@ -21,57 +22,79 @@ export const updateAllUsersRating = async () => {
 
         // Codeforces update
         if (user.codeforcesHandle) {
-          const [statusRes, ratingRes] = await Promise.all([
-            axios.get(
-              `https://codeforces.com/api/user.status?handle=${user.codeforcesHandle}`
-            ),
-            axios.get(
-              `https://codeforces.com/api/user.rating?handle=${user.codeforcesHandle}`
-            ),
-          ]);
+          try {
+            const [statusRes, ratingRes] = await Promise.all([
+              axios.get(
+                `https://codeforces.com/api/user.status?handle=${user.codeforcesHandle}`
+              ),
+              axios.get(
+                `https://codeforces.com/api/user.rating?handle=${user.codeforcesHandle}`
+              ),
+            ]);
 
-          const solvedProblemSet = new Set();
-          statusRes.data.result.forEach((submission: any) => {
-            if (submission.verdict === "OK") {
-              solvedProblemSet.add(
-                `${submission.problem.contestId}-${submission.problem.index}`
-              );
+            const solvedProblemSet = new Set();
+            statusRes.data.result.forEach((submission: any) => {
+              if (submission.verdict === "OK") {
+                solvedProblemSet.add(
+                  `${submission.problem.contestId}-${submission.problem.index}`
+                );
+              }
+            });
+
+            if (
+              ratingRes.data?.status === "OK" &&
+              ratingRes.data.result.length > 0
+            ) {
+              updates.codeforcesRating =
+                ratingRes.data.result[
+                  ratingRes.data.result.length - 1
+                ].newRating;
             }
-          });
-
-          if (
-            ratingRes.data?.status === "OK" &&
-            ratingRes.data.result.length > 0
-          ) {
-            updates.codeforcesRating =
-              ratingRes.data.result[ratingRes.data.result.length - 1].newRating;
+            updates.codeforcesProblemsSolved = solvedProblemSet.size;
+          } catch (error) {
+            console.error(
+              `Error fetching Codeforces data for ${user.codeforcesHandle}:`,
+              error
+            );
           }
-          updates.codeforcesProblemsSolved = solvedProblemSet.size;
         }
 
         // Leetcode update
         if (user.leetcodeHandle) {
-          const [ratingRes, solvedRes] = await Promise.all([
-            axios.get(
-              `https://alfa-leetcode-api-x0kj.onrender.com/userContestRankingInfo/${user.leetcodeHandle}`
-            ),
-            axios.get(
-              `https://alfa-leetcode-api-x0kj.onrender.com/${user.leetcodeHandle}/solved`
-            ),
-          ]);
-
-          updates.leetcodeRating = Math.round(
-            ratingRes.data.data.userContestRanking?.rating || 0
-          );
-          updates.leetcodeProblemsSolved = solvedRes.data.solvedProblem || 0;
+          try {
+            const [ratingRes, solvedRes] = await Promise.all([
+              axios.get(
+                `https://alfa-leetcode-api-x0kj.onrender.com/userContestRankingInfo/${user.leetcodeHandle}`
+              ),
+              axios.get(
+                `https://alfa-leetcode-api-x0kj.onrender.com/${user.leetcodeHandle}/solved`
+              ),
+            ]);
+            updates.leetcodeRating = Math.round(
+              ratingRes.data.data.userContestRanking?.rating || 0
+            );
+            updates.leetcodeProblemsSolved = solvedRes.data.solvedProblem || 0;
+          } catch (error) {
+            console.error(
+              `Error fetching Leetcode data for ${user.leetcodeHandle}:`,
+              error
+            );
+          }
         }
 
         // Codechef update
         if (user.codechefHandle) {
-          const ccResponse = await axios.get(
-            `https://codechef-api.vercel.app/handle/${user.codechefHandle}`
-          );
-          updates.codechefRating = ccResponse.data.currentRating || 0;
+          try {
+            const ccResponse = await axios.get(
+              `https://codechef-api.vercel.app/handle/${user.codechefHandle}`
+            );
+            updates.codechefRating = ccResponse.data.currentRating || 0;
+          } catch (error) {
+            console.log(
+              `Error fetching Codechef data for ${user.codechefHandle}:`,
+              error
+            );
+          }
         }
 
         // Calculate total score
