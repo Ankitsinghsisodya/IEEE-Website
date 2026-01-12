@@ -136,6 +136,37 @@ export const updateAllUsersRating = async () => {
                   }`
               );
             }
+            // Fallback to alternative endpoint if both primary calls failed
+            if (
+              (ratingRes.status === "rejected" || !updates.leetcodeRating) &&
+              (solvedRes.status === "rejected" ||
+                !updates.leetcodeProblemsSolved)
+            ) {
+              try {
+                const fallbackData = await fetchWithRetry(
+                  API_ENDPOINTS.leetcode.fallback(user.leetcodeHandle!),
+                  2
+                );
+
+                if (fallbackData?.data) {
+                  if (!updates.leetcodeRating && fallbackData.data.ranking) {
+                    updates.leetcodeRating = fallbackData.data.ranking;
+                  }
+                  if (
+                    !updates.leetcodeProblemsSolved &&
+                    fallbackData.data.totalSolved
+                  ) {
+                    updates.leetcodeProblemsSolved =
+                      fallbackData.data.totalSolved;
+                  }
+                }
+              } catch (fallbackError) {
+                console.error(
+                  `LeetCode fallback API also failed for ${user.name}:`,
+                  fallbackError
+                );
+              }
+            }
           } catch (error) {
             console.error(`LeetCode API failed for ${user.name}:`, error);
           }
@@ -168,7 +199,8 @@ export const updateAllUsersRating = async () => {
           updates.leetcodeRating +
           updates.codechefRating +
           updates.codeforcesProblemsSolved * 2 +
-          updates.leetcodeProblemsSolved * 2;
+          updates.leetcodeProblemsSolved * 2 +
+          (updates.codechefProblemsSolved || 0) * 2;
 
         // Update user in database
         await prisma.user.update({

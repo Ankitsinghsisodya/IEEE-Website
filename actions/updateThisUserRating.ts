@@ -186,7 +186,10 @@ export const updateThisUserRating = async ({
         updates.leetcodeRating +
         (isValidHandle(user.codechefHandle) ? updates.codechefRating : 0) +
         updates.codeforcesProblemsSolved * 2 +
-        updates.leetcodeProblemsSolved * 2;
+        updates.leetcodeProblemsSolved * 2 +
+        (isValidHandle(user.codechefHandle)
+          ? (updates.codechefProblemsSolved || 0) * 2
+          : 0);
 
       // Update user in database
       await prisma.user.update({

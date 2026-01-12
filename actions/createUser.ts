@@ -11,7 +11,7 @@ function validateEmail(email: string): boolean {
 
 function normalizeHandle(handle: string | undefined): string {
   if (!handle || handle.trim() === "") return "none";
-  return handle.trim().toLowerCase();
+  return handle.trim();
 }
 
 // Return type
