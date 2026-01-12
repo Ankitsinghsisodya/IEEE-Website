@@ -118,11 +118,8 @@ export const updateThisUserRating = async ({
             updates.leetcodeProblemsSolved = solvedRes.value.data.solvedProblem;
           }
 
-          // Fallback to alternative endpoint if primary failed
-          if (
-            ratingRes.status === "rejected" ||
-            solvedRes.status === "rejected"
-          ) {
+          // Fallback to alternative endpoint if either value is still missing
+          if (!updates.leetcodeRating || !updates.leetcodeProblemsSolved) {
             try {
               const fallbackData = await fetchWithRetry(
                 API_ENDPOINTS.leetcode.fallback(user.leetcodeHandle!),
@@ -130,14 +127,13 @@ export const updateThisUserRating = async ({
               );
 
               if (fallbackData?.data) {
-                if (
-                  ratingRes.status === "rejected" &&
-                  fallbackData.data.ranking
-                ) {
+                // Fill in missing rating
+                if (!updates.leetcodeRating && fallbackData.data.ranking) {
                   updates.leetcodeRating = fallbackData.data.ranking;
                 }
+                // Fill in missing solved count
                 if (
-                  solvedRes.status === "rejected" &&
+                  !updates.leetcodeProblemsSolved &&
                   fallbackData.data.totalSolved
                 ) {
                   updates.leetcodeProblemsSolved =
