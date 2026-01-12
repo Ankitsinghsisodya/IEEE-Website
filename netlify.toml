@@ -1,0 +1,13 @@
+
+
+[[edge_functions]]
+  path = "/api/*"
+  function = "my-edge-function"
+
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = [""]
+
+[functions."api/*"]
+  included_files = ["**"]
+  timeout = 60
