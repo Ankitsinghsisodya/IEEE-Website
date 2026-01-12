@@ -18,7 +18,7 @@ export const API_ENDPOINTS = {
   },
   codechef: {
     handle: (handle: string) =>
-      `https://codechef-api.vercel.app/handle/${handle}`,
+      `https://codechef-api-q5ma.onrender.com/handle/${handle}`,
   },
 } as const;
 
