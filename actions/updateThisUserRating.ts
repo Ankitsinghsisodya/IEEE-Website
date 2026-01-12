@@ -89,14 +89,25 @@ export const updateThisUserRating = async ({
             ),
           ]);
 
-          // Process rating data if available
-          if (
-            ratingRes.status === "fulfilled" &&
-            ratingRes.value?.data?.userContestRanking?.rating
-          ) {
-            updates.leetcodeRating = Math.round(
-              ratingRes.value.data.userContestRanking.rating
-            );
+          // Process rating data if available - check multiple possible locations
+          if (ratingRes.status === "fulfilled" && ratingRes.value?.data) {
+            const data = ratingRes.value.data;
+            // Try direct userContestRanking first
+            if (data.userContestRanking?.rating) {
+              updates.leetcodeRating = Math.round(
+                data.userContestRanking.rating
+              );
+            }
+            // Fallback: get latest from history if available
+            else if (data.userContestRankingHistory?.length > 0) {
+              const lastContest =
+                data.userContestRankingHistory[
+                  data.userContestRankingHistory.length - 1
+                ];
+              if (lastContest?.rating) {
+                updates.leetcodeRating = Math.round(lastContest.rating);
+              }
+            }
           }
 
           // Process solved problems data if available
