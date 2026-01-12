@@ -97,7 +97,25 @@ export const updateAllUsersRating = async () => {
                 if (lastContest?.rating) {
                   updates.leetcodeRating = Math.round(lastContest.rating);
                 }
+              } else {
+                console.warn(
+                  `[DEBUG] LeetCode rating not found for ${user.name} (${user.leetcodeHandle}). ` +
+                    `Response keys: ${Object.keys(data).join(", ")}. ` +
+                    `userContestRanking: ${JSON.stringify(
+                      data.userContestRanking
+                    )}`
+                );
               }
+            } else {
+              console.warn(
+                `[DEBUG] LeetCode rating API failed for ${user.name} (${user.leetcodeHandle}). ` +
+                  `Status: ${ratingRes.status}. ` +
+                  `${
+                    ratingRes.status === "rejected"
+                      ? `Reason: ${ratingRes.reason}`
+                      : ""
+                  }`
+              );
             }
 
             // Process solved problems
@@ -107,6 +125,16 @@ export const updateAllUsersRating = async () => {
             ) {
               updates.leetcodeProblemsSolved =
                 solvedRes.value.data.solvedProblem;
+            } else {
+              console.warn(
+                `[DEBUG] LeetCode solved API failed for ${user.name} (${user.leetcodeHandle}). ` +
+                  `Status: ${solvedRes.status}. ` +
+                  `${
+                    solvedRes.status === "fulfilled"
+                      ? `Data: ${JSON.stringify(solvedRes.value?.data)}`
+                      : ""
+                  }`
+              );
             }
           } catch (error) {
             console.error(`LeetCode API failed for ${user.name}:`, error);
@@ -123,6 +151,11 @@ export const updateAllUsersRating = async () => {
 
             if (ccResponse?.data?.currentRating) {
               updates.codechefRating = ccResponse.data.currentRating;
+            } else {
+              console.warn(
+                `[DEBUG] CodeChef rating not found for ${user.name} (${user.codechefHandle}). ` +
+                  `Response: ${JSON.stringify(ccResponse?.data)}`
+              );
             }
           } catch (error) {
             console.error(`CodeChef API failed for ${user.name}:`, error);
