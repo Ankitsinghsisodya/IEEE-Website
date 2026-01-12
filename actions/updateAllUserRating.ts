@@ -82,10 +82,10 @@ export const updateAllUsersRating = async () => {
             // Process rating
             if (
               ratingRes.status === "fulfilled" &&
-              ratingRes.value?.data?.data?.userContestRanking?.rating
+              ratingRes.value?.data?.userContestRanking?.rating
             ) {
               updates.leetcodeRating = Math.round(
-                ratingRes.value.data.data.userContestRanking.rating
+                ratingRes.value.data.userContestRanking.rating
               );
             }
 
