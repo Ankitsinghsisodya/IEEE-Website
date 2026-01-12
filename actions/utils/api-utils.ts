@@ -10,9 +10,9 @@ export const API_ENDPOINTS = {
   },
   leetcode: {
     contestRanking: (handle: string) =>
-      `https://alfa-leetcode-api-x0kj.onrender.com/userContestRankingInfo/${handle}`,
+      `https://alfa-leetcode-api-ycfe.onrender.com/userContestRankingInfo/${handle}`,
     solved: (handle: string) =>
-      `https://alfa-leetcode-api-x0kj.onrender.com/${handle}/solved`,
+      `https://alfa-leetcode-api-ycfe.onrender.com/${handle}/solved`,
     fallback: (handle: string) =>
       `https://leetcode-stats-api.herokuapp.com/${handle}`,
   },
